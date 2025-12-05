@@ -1,5 +1,7 @@
 import joi from "joi"
 
+export const validTopics = ["politics", "health", "sport", "tech"]
+
 export const registerValidation = (data) => {
   const schemaValidation = joi.object({
     username: joi.string().required().min(3).max(256),
@@ -28,6 +30,19 @@ export const postValidation = (data) => {
       .items(joi.string().valid(...validTopics))
       .min(1)
       .required(),
+  })
+  return schemaValidation.validate(data)
+}
+
+export const interactionValidation = (data) => {
+  const schemaValidation = joi.object({
+    post_id: joi.string().required(),
+    type: joi.string().valid("like", "dislike", "comment").required(),
+    comment_body: joi.when("type", {
+      is: "comment",
+      then: joi.string().required().min(1),
+      otherwise: joi.forbidden(),
+    }),
   })
   return schemaValidation.validate(data)
 }
