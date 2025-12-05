@@ -1,0 +1,33 @@
+import joi from "joi"
+
+export const registerValidation = (data) => {
+  const schemaValidation = joi.object({
+    username: joi.string().required().min(3).max(256),
+    email: joi.string().required().min(6).max(256).email(),
+    password: joi.string().required().min(6).max(1024),
+    name: joi.string().required().min(3).max(256),
+  })
+  return schemaValidation.validate(data)
+}
+
+export const loginValidation = (data) => {
+  const schemaValidation = joi.object({
+    email: joi.string().required().min(6).max(256).email(),
+    password: joi.string().required().min(6).max(1024),
+  })
+  return schemaValidation.validate(data)
+}
+
+export const postValidation = (data) => {
+  const schemaValidation = joi.object({
+    title: joi.string().required().min(3).max(256),
+    body: joi.string().required().min(10),
+    expires_in: joi.number().required().positive(),
+    topics: joi
+      .array()
+      .items(joi.string().valid(...validTopics))
+      .min(1)
+      .required(),
+  })
+  return schemaValidation.validate(data)
+}

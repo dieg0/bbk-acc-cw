@@ -1,0 +1,38 @@
+{
+  "name": "piazza-dvs",
+  "version": "1.0.0",
+  "description": "RESTful SaaS for a Twitter-like system",
+  "keywords": [
+    "acc",
+    "coursework",
+    "birkbeck",
+    "2025"
+  ],
+  "bugs": {
+    "url": "https://github.com/dieg0/bbk-acc-cw/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dieg0/bbk-acc-cw.git"
+  },
+  "license": "ISC",
+  "author": "Diego Vargas Sotomayor",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "body-parser": "^2.2.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "joi": "^18.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.0.0",
+    "nodemon": "^3.1.11"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}
