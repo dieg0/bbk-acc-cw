@@ -3,8 +3,19 @@ import User from "../models/User.js"
 import Post from "../models/Post.js"
 import verifyToken from "../verifyToken.js"
 import { postValidation } from "../validations/validation.js"
+import { validTopics } from "../validations/validation.js"
 
 const router = express.Router()
+
+const validateTopic = (topic) => {
+  const validTopic = validTopics.find(
+    (t) => t === topic.toLowerCase(),
+  )
+  if (!validTopic) {
+    throw new Error(`Invalid topic. Must be one of: ${validTopics.join(", ")}`)
+  }
+  return validTopic
+}
 
 router.get("/", verifyToken, async (_, res) => {
   try {
@@ -14,6 +25,19 @@ router.get("/", verifyToken, async (_, res) => {
     )
     const livePosts = enrichedPosts.filter((post) => post.status === "live")
     res.send(livePosts)
+  } catch (err) {
+    res.status(400).send({ message: err })
+  }
+})
+
+router.get("/:post_id", verifyToken, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.post_id)
+    if (!post) {
+      return res.status(404).send({ message: "Post not found" })
+    }
+    const enrichedPost = await post.enrichPost()
+    res.send(enrichedPost)
   } catch (err) {
     res.status(400).send({ message: err })
   }
@@ -43,19 +67,6 @@ router.post("/", verifyToken, async (req, res) => {
     res.send(postToSave)
   } catch (err) {
     res.send({ message: err })
-  }
-})
-
-router.get("/:post_id", verifyToken, async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.post_id)
-    if (!post) {
-      return res.status(404).send({ message: "Post not found" })
-    }
-    const enrichedPost = await post.enrichPost()
-    res.send(enrichedPost)
-  } catch (err) {
-    res.status(400).send({ message: err })
   }
 })
 
@@ -113,6 +124,67 @@ router.delete("/:post_id", verifyToken, async (req, res) => {
   }
 })
 
-// Missing topic routes
+router.get("/topic/:topic", verifyToken, async (req, res) => {
+  try {
+    const validTopic = validateTopic(req.params.topic)
+    const posts = await Post.find({ topics: validTopic })
+    const enrichedPosts = await Promise.all(
+      posts.map((post) => post.enrichPost()),
+    )
+    const livePosts = enrichedPosts.filter((post) => post.status === "live")
+    res.send(livePosts)
+  } catch (err) {
+    res.status(400).send({ message: err.message || err })
+  }
+})
+
+router.get("/topic/:topic/expired", verifyToken, async (req, res) => {
+  try {
+    const validTopic = validateTopic(req.params.topic)
+    const now = new Date()
+    const expiredPosts = await Post.find({
+      topics: validTopic,
+      expires_at: { $lt: now },
+    })
+    if (expiredPosts.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "No expired posts found for this topic" })
+    }
+    const enrichedPosts = await Promise.all(
+      expiredPosts.map((post) => post.enrichPost()),
+    )
+    res.send(enrichedPosts)
+  } catch (err) {
+    res.status(400).send({ message: err.message || err })
+  }
+})
+
+router.get("/topic/:topic/most-active", verifyToken, async (req, res) => {
+  try {
+    const validTopic = validateTopic(req.params.topic)
+    const posts = await Post.find({ topics: validTopic })
+    if (posts.length === 0) {
+      return res.status(404).send({ message: "No posts found for this topic" })
+    }
+    const enrichedPosts = await Promise.all(
+      posts.map((post) => post.enrichPost()),
+    )
+    const livePosts = enrichedPosts.filter((post) => post.status === "live")
+    if (livePosts.length === 0) {
+      return res
+        .status(404)
+        .send({ message: "No live posts found for this topic" })
+    }
+    const mostActivePost = livePosts.reduce((prev, current) => {
+      const prevEngagement = prev.like_count + prev.dislike_count
+      const currentEngagement = current.like_count + current.dislike_count
+      return currentEngagement > prevEngagement ? current : prev
+    })
+    res.send(mostActivePost)
+  } catch (err) {
+    res.status(400).send({ message: err.message || err })
+  }
+})
 
 export default router
