@@ -15,9 +15,27 @@ router.post("/", verifyToken, async (req, res) => {
     if (!post) {
       return res.status(404).send({ message: "Post not found" })
     }
+    const now = new Date()
+    if (now > post.expires_at) {
+      return res
+        .status(400)
+        .send({ message: "Cannot interact with expired posts" })
+    }
     const user = await User.findById(req.user._id)
     if (!user) {
       return res.status(404).send({ message: "User not found" })
+    }
+    if (post.owner.id.toString() === user._id.toString()) {
+      return res
+        .status(400)
+        .send({ message: "Users cannot interact with their own posts" })
+    }
+    if (req.body.type === "like" || req.body.type === "dislike") {
+      await Interaction.deleteOne({
+        post_id: req.body.post_id,
+        "user.id": user._id,
+        type: { $in: ["like", "dislike"] },
+      })
     }
     const interactionData = new Interaction({
       post_id: req.body.post_id,
