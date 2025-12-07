@@ -1,5 +1,6 @@
 import jsonwebtoken from "jsonwebtoken"
 
+// Middleware function to verify JWT token
 function auth(req, res, next) {
   const token = req.header("auth-token")
   if (!token) {

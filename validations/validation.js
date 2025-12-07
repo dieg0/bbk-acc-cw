@@ -2,6 +2,7 @@ import joi from "joi"
 
 export const validTopics = ["politics", "health", "sport", "tech"]
 
+// User Registration Validation
 export const registerValidation = (data) => {
   const schemaValidation = joi.object({
     username: joi.string().required().min(3).max(256),
@@ -12,6 +13,7 @@ export const registerValidation = (data) => {
   return schemaValidation.validate(data)
 }
 
+// User Login Validation
 export const loginValidation = (data) => {
   const schemaValidation = joi.object({
     email: joi.string().required().min(6).max(256).email(),
@@ -20,6 +22,7 @@ export const loginValidation = (data) => {
   return schemaValidation.validate(data)
 }
 
+// Post Creation Validation
 export const postValidation = (data) => {
   const schemaValidation = joi.object({
     title: joi.string().required().min(3).max(256),
@@ -34,6 +37,7 @@ export const postValidation = (data) => {
   return schemaValidation.validate(data)
 }
 
+// Interaction Validation
 export const interactionValidation = (data) => {
   const schemaValidation = joi.object({
     post_id: joi.string().required(),
